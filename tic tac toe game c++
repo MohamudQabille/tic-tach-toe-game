@@ -1,0 +1,361 @@
+#include <iostream>
+#include <time.h>
+using namespace std;
+
+const int row = 3, col = 3, MaxWin = 3;
+char Player1 = 'X', Player2 = 'O', Computer = 'O';
+char Board[row][col];
+int player1WinCount = 0, player2WinCount = 0, TotalNumberOfGamesPlayed = 0, draw = 0;
+
+//function Used to print the menu and get the user input
+int Menu()
+{
+	int type;
+	cout << "Welcome to our tic tacToe Game" << endl;
+	cout << "Press 1 if you wish to choose a player Vs Human mode" << endl;
+	cout << "Press 2 if you wish to choose a player Vs Computer mode" << endl;
+	cout << "Please input your type : ";
+	//If user input alphabets or number less than 1 or number greater than 2, Then while loop condition will return true
+	while (!(cin >> type) || type < 1 || type > 2)
+	{
+		//Display the error message
+		cout << "\nError :: Invalid Input!" << endl;
+		cout << "Please input your type again : ";
+		cin.clear();
+		cin.ignore(123, '\n');
+	}
+	//Once user entered the valid input then return the number
+	return type;
+}
+
+
+//function Used to print the board
+void PrintBoard()
+{
+	//Clear screen
+	system("CLS");
+
+	cout << "Total number of games played : " << TotalNumberOfGamesPlayed << endl;
+	cout << "Player 1 : " << player1WinCount << "/" << MaxWin << " "
+		<< "Computer : " << player2WinCount << "/" << MaxWin << " "
+		<< "Draw : " << draw << endl;
+
+	//Print the board
+	cout << " 1 2 3" << endl;
+	for (int i = 0; i < row; i++)
+	{
+		cout << (i + 1) << " ";
+		for (int j = 0; j < col; j++)
+		{
+			cout << Board[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+
+//function Used to initialize the Board elements to ? at start of the game
+void InitializeBoard()
+{
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			Board[i][j] = '?';
+		}
+	}
+}
+
+
+//function to see if the board is full or not
+bool IsBoardFull()
+{
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			//If any of the board element contains ? then it means board is not full, So return false
+			if (Board[i][j] == '?')
+			{
+				return false;
+			}
+		}
+	}
+	//return true, when board is full
+	return true;
+}
+
+//function to see if the value is in between 1 and 3
+bool IsValidPosition(int value)
+{
+	//If value is in between 1 and 3 , return true  or otherwise return false
+	if (value > 0 && value <= 3)
+	{
+		return true;
+	}
+	return false;
+}
+
+//Used to get valid number from user
+//string position represents row or column
+int get_location_from_user(string location)
+{
+	int number;
+	cout << "Please enter the " << location << " number : ";
+	while (!(cin >> number) || !IsValidPosition(number))
+	{
+		cout << "\nError :: Invalid Input, Please enter a number in between 1 and 3." << endl;
+		cout << "Please enter the " << location << " number again : ";
+		cin.clear();
+		cin.ignore(123, '\n');
+	}
+	return number;
+}
+
+//Used to check the position in the board is taken or not
+bool IsPositionTaken(int row, int column)
+{
+	//Array index starts from 0, So subtracting 1 to get the correct index
+	//If row = 3, column = 2 then it will be checked in
+	//Board[2][1]
+	if (Board[row - 1][column - 1] == '?')
+		return false;
+
+	return true;
+}
+
+//Used to check the player won the match or not
+//currentPlayerPlaying represent the player 1 or 2
+bool has_player_won(int currentPlayerPlaying)
+{
+	char currentPlayerIcon = 'X';
+
+	//If currentPlayerPlaying is 1 then currentPlayerIcon is set as Player1('X') otherwise Player2('O')
+	if (currentPlayerPlaying == 1)
+		currentPlayerIcon = Player1;
+	else
+		currentPlayerIcon = Player2;
+
+	//Row check, Check the board whether 3 Consecutive icon present in a row
+	for (int i = 0; i < row; i++)
+	{
+		if (Board[i][0] == currentPlayerIcon && Board[i][1] == currentPlayerIcon && Board[i][2] == currentPlayerIcon)
+		{
+			return true;
+		}
+	}
+
+	//Column check, Check the board whether 3 Consecutive icon present in a column
+	for (int i = 0; i < row; i++)
+	{
+		if (Board[0][i] == currentPlayerIcon && Board[1][i] == currentPlayerIcon && Board[2][i] == currentPlayerIcon)
+		{
+			return true;
+		}
+	}
+
+	//Diagonal check, Check the board whether 3 Consecutive icon present in diagonally in both direction
+	if (Board[0][0] == currentPlayerIcon && Board[1][1] == currentPlayerIcon && Board[2][2] == currentPlayerIcon)
+	{
+		return true;
+	}
+	else if (Board[0][2] == currentPlayerIcon && Board[1][1] == currentPlayerIcon && Board[2][0] == currentPlayerIcon)
+	{
+		return true;
+	}
+
+	//If above conditions are false, Then it return false
+	return false;
+}
+
+//Human Vs Human game starts here
+void HumanVsHuman()
+{
+	//Initialize the Board with ?
+	InitializeBoard();
+
+	//At initial currentPlayerPlaying is 1
+	int currentPlayerPlaying = 1;
+	//Set IsTieMatch to true, Indicating no one wins
+	bool IsTieMatch = true;
+
+	//Loop until board not full
+	while (IsBoardFull() == false)
+	{
+		//Print the board
+		PrintBoard();
+		int positionRow, col_location;
+		cout << "Player " << currentPlayerPlaying << " turn :: " << endl;
+		//Get row and column from the user
+		positionRow = get_location_from_user("Row");
+		col_location = get_location_from_user("Column");
+		//If user entered position is not taken then below if condition is true
+		if (IsPositionTaken(positionRow, col_location) == false)
+		{
+			//decrement the positionRow and positionColumn by one to get the correct position in the array(zero index based)
+			positionRow--;
+			col_location--;
+			//If currentPlayerPlaying is 1 then below condition is true, It will store 'X' into that position else 'O'
+			if (currentPlayerPlaying == 1)
+				Board[positionRow][col_location] = Player1;
+			else
+				Board[positionRow][col_location] = Player2;
+
+			//Check current player won the match, If won then below if condition is true
+			if (has_player_won(currentPlayerPlaying))
+			{
+				//currentPlayerPlaying is 1 then increment player1WinCount by one otherwise increment player2WinCount
+				if (currentPlayerPlaying == 1)
+					player1WinCount++;
+				else
+					player2WinCount++;
+
+				//Print board
+				PrintBoard();
+
+				//Display the message
+				cout << "Player " << currentPlayerPlaying << " won the current match!" << endl;
+
+				//Set IsTieMatch = false, Means one of the player won the match
+				IsTieMatch = false;
+				//Used to pause the console
+				system("pause");
+				//Break the loop when player won
+				break;
+			}
+			//if currentPlayerPlaying is 1 then pass 2 as the next player else pass 1
+			currentPlayerPlaying = currentPlayerPlaying == 1 ? 2 : 1;
+		}
+		else
+		{
+			cout << "location (" << positionRow << "," << col_location << ") already taken, Please enter again!" << endl;
+			system("pause");
+		}
+	}
+
+	//If match is tie, Then below if condition is true
+	if (IsTieMatch)
+	{
+		//Increment the tie variable
+		draw++;
+		//Display the message
+		cout << "It's a draw match" << endl;
+		system("pause");
+	}
+}
+
+void HumanVsComputer()
+{
+	InitializeBoard();
+
+	int currentPlayerPlaying = 1;
+	bool its_a_draw = true;
+
+	while (IsBoardFull() == false)
+	{
+		PrintBoard();
+		int col_location,Row_location;
+		cout << "Player " << currentPlayerPlaying << " turn :: " << endl;
+		Row_location = get_location_from_user("Row");
+		col_location = get_location_from_user("Column");
+		if (IsPositionTaken(Row_location, col_location) == false)
+		{
+			Row_location--;
+			col_location--;
+			Board[Row_location][col_location] = Player1;
+
+			if (has_player_won(currentPlayerPlaying))
+			{
+				player1WinCount++;
+
+				PrintBoard();
+
+				cout << "Player " << currentPlayerPlaying << " won the current match!" << endl;
+				its_a_draw = false;
+				system("pause");
+				break;
+			}
+			currentPlayerPlaying = currentPlayerPlaying == 1 ? 2 : 1;
+
+			//-------------------------------------------
+			//Player 2 computer start playing from here
+			//Check board is full or not and currentPlayerPlaying is 2
+			if (IsBoardFull() == false && currentPlayerPlaying == 2)
+			{
+				do
+				{
+					//Generate random number in between 1 and 3
+					Row_location = (rand() % 3 + 1);
+					col_location = (rand() % 3 + 1);
+					//Check position is taken or not, If position is already taken loop continues
+				} while (IsPositionTaken(Row_location, col_location));
+
+				//Decrement to get the correct position in the array
+				Row_location--;
+				col_location--;
+				//Store 'O'
+				Board[Row_location][col_location] = Computer;
+
+				//Check player 2 computer won the wmatch
+				if (has_player_won(currentPlayerPlaying))
+				{
+					//If won, Increment player2WinCount by one
+					player2WinCount++;
+
+					//print the board
+					PrintBoard();
+
+					cout << "Computer has won!" << endl;
+					its_a_draw = false;
+					system("pause");
+					break;
+				}
+				currentPlayerPlaying = currentPlayerPlaying == 1 ? 2 : 1;
+			}
+		}
+		else
+		{
+			cout << "location (" << Row_location << "," << col_location << ") location is already taken, try another!" << endl;
+			system("pause");
+		}
+	}
+
+	if (its_a_draw)
+	{
+		draw++;
+		cout << "we have a draw match, Go at it again lads" << endl;
+		system("pause");
+	}
+}
+
+
+
+
+int main()
+{
+	//* initialize random seed for generating random number: 
+	srand(time(NULL));
+
+	//Get the user input
+	int choice = Menu();
+
+	//Loop until anyone of the player wins three times
+	while (player1WinCount < MaxWin && player2WinCount < MaxWin)
+	{
+		if (choice == 1)
+			HumanVsHuman();
+		else
+			HumanVsComputer();
+
+		//Increment TotalNumberOfGamesPlayed everytime when game played
+		TotalNumberOfGamesPlayed++;
+	}
+
+	//If player1WinCount is greater then below if condition is true otherwise else block will be executed
+	if (player1WinCount > player2WinCount)
+		cout << "\n!!!!!!!!!!!Player 1 has won the series!!!!!!!!!!!!" << endl;
+	else
+		cout << "\n!!!!!!!!!!!Player 2 has won the series" << endl;
+
+	//Used to pause the console
+	system("pause");
+}
